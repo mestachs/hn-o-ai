@@ -252,21 +252,24 @@
         const btnRefresh = document.getElementById("refresh");
 
         const AI_WORDS = [
-          /(?:^|\\W)AI(?:$|\\W)/i,
-          /artificial intelligence/i,
-          /machine learning|deep learning|\bML\b/i,
-          /LLMs\b|LLM\b|large language model/i,
-          /GPT\b|GPT5\b|ChatGPT|OpenAI/i,
-          /Anthropic\b|Claude\b/i,
-          /DeepMind|Google\s*AI|Gemini|PaLM|Bard\b/i,
-          /Llama\b|Ollama\b/i,
-          /Stable Diffusion|Midjourney|diffusion model/i,
-          /Mistral\b|Perplexity\b|x\.ai|Grok\b/i,
-          /Hugging\s*Face/i,
-          /transformer\b|fine[- ]?tune|prompt\b|RAG\b|embeddings?/i,
-          /copilot|co-pilot/i,
-          /deepfake/i,
+          /\bai\b/i,
+          /\bartificial intelligence\b/i,
+          /\b(machine learning|deep learning|ml)\b/i,
+          /\b(llm|llms|large language model)\b/i,
+          /\b(gpt|gpt-?\d+|chatgpt|openai)\b/i,
+          /\b(anthropic|claude)\b/i,
+          /\b(deepmind|google\s*ai|gemini|palm|bard)\b/i,
+          /\b(llama|ollama)\b/i,
+          /\b(stable diffusion|midjourney|diffusion model)\b/i,
+          /\b(mistral|perplexity|x\.ai|grok)\b/i,
+          /\bhugging\s*face\b/i,
+          /\b(transformer|fine[- ]?tune|prompt|rag|embedding?s)\b/i,
+          /\b(co-?pilot)\b/i,
+          /\bdeepfake\b/i,
+          /\bagents?\b/i,
+          /\bopenclaw?\b/i,
         ];
+
         const AI_DOMAINS = [
           "openai.com",
           "anthropic.com",
@@ -388,12 +391,27 @@
           return item;
         }
 
+
+        function safeHostname(url) {
+          try {
+            return new URL(url).hostname.toLowerCase();
+          } catch {
+            return "";
+          }
+        }
+
+        function normalize(text) {
+          return (text || "").normalize("NFKC");
+        }
+
         function isAINews(item) {
-          const title = item && item.title ? item.title : "";
-          const url = item && item.url ? item.url : "";
-          const host = url ? new URL(url).hostname : "";
-          if (AI_DOMAINS.some((d) => host.includes(d))) return true;
-          return AI_WORDS.some((rx) => rx.test(title) || rx.test(url));
+          const title = normalize(item?.title);
+          const url = normalize(item?.url);
+          const host = safeHostname(url);
+
+          if (AI_DOMAINS.some(d => host.includes(d))) return true;
+
+          return AI_WORDS.some(rx => rx.test(title) || rx.test(url));
         }
 
         function currentPageIds() {
